@@ -109,9 +109,39 @@ static inline void MOJO_LOG_print_timestamp(void) {
 }
 
 // ===== File/Line Printing =====
+#define MOJO_LOG_FILE_DEPTH 2  // Comment out to show full path (not recommended)
+
 static inline void MOJO_LOG_print_fileline(const char* file, int line) {
-    if (file)
+   if (file) {
+    #ifdef MOJO_LOG_FILE_DEPTH
+        // Print only the last N components of the file path
+        int depth = MOJO_LOG_FILE_DEPTH;
+        //const char* p = file;
+        const char* last = file;
+        int count = 0;
+        // Count total number of '/' in the path
+        for (const char* s = file; *s; ++s) {
+            if (*s == '/') ++count;
+        }
+        // Find the position to start printing
+        int skip = count - depth;
+        if (skip > 0) {
+            int seen = 0;
+            for (const char* s = file; *s; ++s) {
+                if (*s == '/') {
+                    ++seen;
+                    if (seen > skip) {
+                        last = s + 1;
+                        break;
+                    }
+                }
+            }
+        }
+        printf("[%s:%d] ", last, line);
+    #else
         printf("[%s:%d] ", file, line);
+    #endif
+    }
 }
 
 // ===== Core Logging Functions =====
